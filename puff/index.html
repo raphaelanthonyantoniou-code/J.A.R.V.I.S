@@ -368,7 +368,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <section id="loungeCard" class="card-float" aria-live="polite">
   <div class="eyebrow" id="lcEyebrow">Hookah lounge · Glyfada</div>
   <h2 id="lcTitle">Welcome to Puff</h2>
-  <p id="lcText">Walk the hall, the glass lounge and the VIP room, then build your own mix or book a table for tonight. Tap a glowing pin to jump to a spot.</p>
+  <p id="lcText">Walk the terrace, the hall, the glass lounge and the VIP room, then build your own mix or book a table for tonight. Tap a glowing pin to jump to a spot.</p>
   <div class="row" id="lcActions">
     <button class="btn btn-primary" data-go="mix">Build your mix</button>
     <button class="btn btn-ghost" data-go="reserve">Reserve a table</button>
@@ -648,6 +648,10 @@ const MENU = {
 };
 // floor plan (metres). Main hall z -4.5..11, glass lounge and VIP room z -9.5..-4.5, bar along the left wall
 const TABLES = [
+  { id: 'T1', zone: 'Terrace', seats: 4, type: 'round4', pos: [-4.3, 12.2], where: 'Under the awning' },
+  { id: 'T2', zone: 'Terrace', seats: 4, type: 'round4', pos: [-2.3, 13.8], where: 'Terrace edge' },
+  { id: 'T3', zone: 'Terrace', seats: 4, type: 'round4', pos: [2.3, 13.8], where: 'Terrace edge' },
+  { id: 'T4', zone: 'Terrace', seats: 4, type: 'round4', pos: [4.3, 12.4], where: 'By the outdoor screen' },
   { id: 'H1', zone: 'Hall', seats: 4, type: 'round4', pos: [-2.2, -1.0], where: 'By the rug' },
   { id: 'H2', zone: 'Hall', seats: 2, type: 'round2', pos: [0.9, -1.4], where: 'Main hall' },
   { id: 'H3', zone: 'Hall', seats: 4, type: 'round4', pos: [3.9, -1.4], where: 'By the library' },
@@ -927,23 +931,23 @@ function tree(x, z, s = 1) {
 }
 function buildStreet() {
   const ground = mesh(new THREE.PlaneGeometry(240, 240), M.asphalt, 0, -.25, 0, scene); ground.rotation.x = -Math.PI / 2;
-  pavedBox(92, 2.4, -4, 12.2);       // front sidewalk z 11..13.4
-  pavedBox(2.4, 42, 7.2, -9.6);      // side sidewalk x 6..8.4
-  mesh(bgeo(92, .17, .14), M.curb, -4, -.17, 13.45, scene);
-  mesh(bgeo(.14, .17, 42), M.curb, 8.45, -.17, -9.6, scene);
+  pavedBox(92, 6.4, -4, 14.2);       // front sidewalk z 11..17.4, the terrace deck sits on it
+  pavedBox(2.4, 46, 7.2, -7.6);      // side sidewalk x 6..8.4
+  mesh(bgeo(92, .17, .14), M.curb, -4, -.17, 17.45, scene);
+  mesh(bgeo(.14, .17, 46), M.curb, 8.45, -.17, -7.6, scene);
   const dash = [];
-  for (let x = -60; x < 60; x += 5) dash.push({ x, y: -.245, z: 17.8, sx: 2.2, sy: .01, sz: .14 });
+  for (let x = -60; x < 60; x += 5) dash.push({ x, y: -.245, z: 21.8, sx: 2.2, sy: .01, sz: .14 });
   for (let z = -40; z < 10; z += 5) dash.push({ x: 11.8, y: -.245, z, sx: .14, sy: .01, sz: 2.2 });
   scene.add(instanced(bgeo(1, 1, 1), new THREE.MeshStandardMaterial({ color: '#8d8a83', roughness: .8 }), dash));
   // blocks across the street and the side street
-  [[-52, -31, 15], [-30, -15, 19], [-14, -1.5, 12], [0, 13, 17], [16, 31, 21], [32, 52, 13]].forEach(([a, b, h]) => block(a, b, 22.6, 32.6, h));
+  [[-52, -31, 15], [-30, -15, 19], [-14, -1.5, 12], [0, 13, 17], [16, 31, 21], [32, 52, 13]].forEach(([a, b, h]) => block(a, b, 26.6, 36.6, h));
   [[-36, -18, 16], [-17, -3, 20], [-2, 9.5, 14]].forEach(([a, b, h]) => block(15.6, 25.6, a, b, h));
   block(-30, -6.35, -9.6, 11, 12.5);   // neighbour on the left
   // dark shopfront glass on the neighbour
   mesh(plane(8, 2.6), new THREE.MeshStandardMaterial({ color: '#0c0f14', roughness: .1, metalness: .7 }), -11, 1.3, 11.02, scene);
-  lamp(-11, 12.9, 0); lamp(7.6, 12.9, Math.PI); lamp(22, 12.9, 0); lamp(7.6, -6, Math.PI);
-  tree(7.3, -1.2, .95); tree(7.4, 4.6, 1.05); tree(7.2, 10.2, .9); tree(-8.5, 12.5, 1); tree(13.6, 12.6, 1.1);
-  makeCar('#9b1c1c', 15.6, 1, 8, -30); makeCar('#d8d8d8', 15.6, 1, 6.5, 12); makeCar('#1f3a66', 20.0, -1, 7.5, 5); makeCar('#222', 20.0, -1, 9, -35);
+  lamp(-11, 16.9, 0); lamp(7.6, 16.9, Math.PI); lamp(22, 16.9, 0); lamp(7.6, -6, Math.PI);
+  tree(7.3, -1.2, .95); tree(7.4, 4.6, 1.05); tree(7.2, 10.2, .9); tree(-8.5, 16.5, 1); tree(13.6, 16.6, 1.1);
+  makeCar('#9b1c1c', 19.6, 1, 8, -30); makeCar('#d8d8d8', 19.6, 1, 6.5, 12); makeCar('#1f3a66', 24.0, -1, 7.5, 5); makeCar('#222', 24.0, -1, 9, -35);
 }
 
 /* ---------- Puff textures: walnut, rattan, posters, door, rug, logo, basketballs ---------- */
@@ -1252,6 +1256,46 @@ function buildBar() {
   const bl = regLight('bar', new THREE.PointLight('#ffd6a0', 5, 6, 1.8)); bl.position.set(-4.4, 2.9, -.4); world.add(bl);
 }
 
+/* ---------- outdoor terrace: lit deck edge, rattan tables, draped awning, glass entrance box ---------- */
+function buildPuffTerrace() {
+  const z0 = 11, z1 = 15, deckMat = new THREE.MeshStandardMaterial({ color: '#2a2724', roughness: .9 });
+  box(12.2, .25, z1 - z0, deckMat, 0, -.125, (z0 + z1) / 2);
+  // LED strip under the deck lip and its glow on the paving
+  const edge = neonMat('terrace', '#fff1d2', 2.6);
+  box(12.3, .03, .03, edge, 0, -.2, z1 + .02); box(.03, .03, z1 - z0, edge, -6.12, -.2, (z0 + z1) / 2); box(.03, .03, z1 - z0, edge, 6.12, -.2, (z0 + z1) / 2);
+  const glowMat = neonMat('terrace', '#ffe2b0', .45, { map: T.glow, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
+  for (let x = -5.4; x <= 5.4; x += 1.8) { const p = mesh(plane(2.4, 1.6), glowMat, x, -.095, z1 + .55); p.rotation.x = -Math.PI / 2; }
+  // glass entrance box with slim rods
+  const vb = new THREE.Group(); world.add(vb);
+  const gl = (w, x, z, ry) => { const m = mesh(plane(w, 2.6), M.glass, x, 1.3, z, vb); m.rotation.y = ry; m.renderOrder = 3; };
+  gl(2.2, 0, 12.4, 0); gl(1.4, -1.1, 11.7, Math.PI / 2); gl(1.4, 1.1, 11.7, Math.PI / 2);
+  box(2.3, .14, 1.5, M.blackGloss, 0, 2.67, 11.7, vb);
+  const rods = [];
+  for (let x = -1.05; x <= 1.05; x += .11) if (Math.abs(x) > .45) rods.push({ x, y: 1.3, z: 12.41, sx: .012, sy: 2.6, sz: .012 });
+  for (let z = 11.05; z <= 12.35; z += .11) for (const x of [-1.1, 1.1]) rods.push({ x, y: 1.3, z, sx: .012, sy: 2.6, sz: .012 });
+  vb.add(instanced(bgeo(1, 1, 1), M.blackMetal, rods));
+  // white PUFF sign on top of the entrance box
+  const letters = neonMat('sign', '#ffffff', 2.2, { map: wordCanvas('PUFF'), transparent: true, depthWrite: false });
+  const halo = neonMat('sign', '#fff3e0', .8, { map: wordCanvas('PUFF', { glow: '#ffffff' }), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+  mesh(plane(1.7, .53), halo, 0, 3.0, 12.43).renderOrder = 4;
+  mesh(plane(1.7, .53), letters, 0, 3.0, 12.44).renderOrder = 5;
+  document.fonts.load(`40px ${PUFF_FONT}`).then(f => { if (!f.length) return; letters.map.dispose(); letters.map = wordCanvas('PUFF'); halo.map.dispose(); halo.map = wordCanvas('PUFF', { glow: '#ffffff' }); }).catch(() => { /* keep the fallback face */ });
+  // draped fabric awning on black rails (lifts away with the roof)
+  const aw = new THREE.Group(); roof.add(aw);
+  const geo = new THREE.PlaneGeometry(12.3, z1 - z0 + .3, 2, 96); geo.rotateX(-Math.PI / 2);
+  const pa = geo.attributes.position, D = z1 - z0 + .3, bay = .62;
+  const yAt = (z, sag) => { const t = (z + D / 2) / D; return 3.5 - .55 * t - (sag ? .13 * Math.pow(Math.sin(Math.PI * (z + D / 2) / bay), 2) : 0); };
+  for (let i = 0; i < pa.count; i++) pa.setY(i, yAt(pa.getZ(i), true));
+  geo.computeVertexNormals();
+  mesh(geo, new THREE.MeshStandardMaterial({ color: '#c4bdb1', roughness: 1, side: THREE.DoubleSide, emissive: '#3a332a', emissiveIntensity: .6 }), 0, 0, (z0 + z1) / 2 + .15, aw);
+  for (let k = 0; k * bay <= D + .01; k++) { const z = -D / 2 + k * bay; box(12.3, .04, .04, M.blackMetal, 0, yAt(z, false) + .01, (z0 + z1) / 2 + .15 + z, aw); }
+  for (const x of [-6.1, 6.1]) { const r = box(.08, .08, D, M.blackMetal, x, 3.22, (z0 + z1) / 2 + .15, aw); r.rotation.x = Math.atan2(.55, D); }
+  for (const x of [-6.05, 0, 6.05]) box(.1, 2.95, .1, M.blackMetal, x, 1.47, z1 - .05);
+  const tl = regLight('terrace', new THREE.PointLight('#ffe2c0', 5, 9, 1.7)); tl.position.set(0, 2.7, 13.2); aw.add(tl);
+  tvSet(4.6, 2.35, 11.1, 0, 1.2);
+  monstera(-5.6, 14.4, 1); monstera(5.6, 14.5, 1.1);
+}
+
 function tvSet(x, y, z, ry, w, p = world) {
   const g = new THREE.Group();
   mesh(rbox(w, w * .5625 + .05, .05, .01), M.blackGloss, 0, 0, 0, g);
@@ -1532,7 +1576,7 @@ let markerMats = {};
 function buildSets() {
   const avail = new THREE.Color('#e2bf68').multiplyScalar(1.6);
   markerMats.base = new THREE.MeshBasicMaterial({ color: avail, transparent: true, opacity: .9, depthWrite: false, side: THREE.DoubleSide });
-  const lit = { H1: 'grape', H5: 'mango', G2: 'cherry', V1: 'mint', H9: 'watermelon', B1: 'peach' };
+  const lit = { T2: 'blueberry', T4: 'lemon', H1: 'grape', H5: 'mango', G2: 'cherry', V1: 'mint', H9: 'watermelon', B1: 'peach' };
   TABLES.forEach(t => {
     const g = new THREE.Group(); world.add(g);
     const [x, z] = t.pos;
@@ -1647,7 +1691,7 @@ async function init3D(progress) {
   tv = makeTV();
   smoke = new Smoke(); scene.add(smoke.points);
   progress(.25, 'Laying the floor'); await nextFrame();
-  buildStreet(); buildBuilding(); buildHall();
+  buildStreet(); buildBuilding(); buildHall(); buildPuffTerrace();
   progress(.45, 'Stocking the bar'); await nextFrame();
   buildGreenery(); buildGlassLounge(); buildLibrary(); buildBar();
   progress(.6, 'Arranging the sofas'); await nextFrame();
@@ -1683,8 +1727,9 @@ async function init3D(progress) {
 
 /* ============================== CAMERA ============================== */
 const SHOTS = {
-  street: { pos: [0, 1.75, 31], target: [0, 3.0, 11], fov: [46, 60], ps: 1 },
-  streetClose: { pos: [1.4, 1.6, 18.5], target: [0, 2.8, 11], fov: [46, 62], ps: 1.12 },
+  street: { pos: [0, 1.75, 35], target: [0, 2.6, 12.5], fov: [46, 60], ps: 1 },
+  streetClose: { pos: [1.6, 1.6, 21.5], target: [0, 2.3, 12.5], fov: [46, 62], ps: 1.12 },
+  terrace: { pos: [6.6, 1.9, 17.2], target: [-1.2, 1.1, 12.2], fov: [50, 64], ps: 1.12 },
   overview: { pos: [4.4, 2.5, 10.2], target: [-1.8, 1.4, -3.2], fov: [50, 64], ps: 1.1 },
   hall: { pos: [-4.8, 1.8, 10.0], target: [2.4, 1.0, 2.0], fov: [50, 64], ps: 1.1 },
   lounge: { pos: [-1.4, 1.7, .8], target: [-2.6, 2.0, -6.4], fov: [50, 64], ps: 1.1 },
@@ -1692,10 +1737,10 @@ const SHOTS = {
   vip: { pos: [1.2, 1.75, -5.1], target: [4.4, 1.2, -8.8], fov: [56, 68], ps: 1.0 },
   bar: { pos: [-1.6, 1.7, 3.2], target: [-5.6, 1.4, -1.6], fov: [50, 64], ps: 1.1 },
   screens: { pos: [1.0, 1.6, 4.8], target: [6, 2.0, 4.9], fov: [50, 64], ps: 1.12 },
-  street2: { pos: [3.5, 1.7, 19.5], target: [0, 3.0, 11], fov: [46, 60], ps: 1.15 },
+  street2: { pos: [3.5, 1.7, 23.5], target: [0, 2.8, 12.5], fov: [46, 60], ps: 1.15 },
   mix: { pos: [-3.7, 2.4, -.35], target: [-5.0, 1.6, -.65], pt: [-5.0, 1.74, -.65], fov: [40, 50], ps: 1.35 },
   menu: { pos: [-1.4, 1.75, 4.0], target: [-5.6, 1.3, -1.0], fov: [50, 64], ps: 1.08 },
-  reserve: { pos: [.6, 17.5, 12.5], target: [0, 0, .8], fov: [45, 56], ps: 1.12 },
+  reserve: { pos: [.6, 27, 13.5], target: [0, 0, 3.4], fov: [45, 56], ps: 1.08 },
 };
 function shot(name) {
   const s = SHOTS[name]; const portrait = innerWidth / innerHeight < .85;
@@ -1773,6 +1818,7 @@ function setRoof(on) {
 
 /* ============================== PINS ============================== */
 const SPOTS = [
+  { id: 'terrace', label: 'Terrace', at: [-2.2, 2.6, 13.4], shot: 'terrace', eyebrow: 'Terrace', title: 'The terrace', text: 'Rattan chairs on a deck with a glowing edge, under the draped awning, with the white PUFF sign over the glass entrance.', actions: [{ label: 'Book on the terrace', go: 'reserve', zone: 'Terrace', primary: true }] },
   { id: 'hall', label: 'Main hall', at: [.4, 2.7, 5.6], shot: 'hall', eyebrow: 'Main hall', title: 'The main hall', text: 'Rattan chairs round dark tables, patio heaters, LED lines across a black ceiling and the game on the screens.', actions: [{ label: 'Book in the hall', go: 'reserve', zone: 'Hall', primary: true }] },
   { id: 'lounge', label: 'Under the sign', at: [-2.6, 2.1, -5.4], shot: 'lounge', eyebrow: 'Glass lounge', title: 'Under the PUFF sign', text: 'Sofas behind glass and slim rods, right under the PUFF sign and its red neon.', actions: [{ label: 'Book the glass lounge', go: 'reserve', zone: 'Lounge', primary: true }] },
   { id: 'library', label: 'Library wall', at: [2.0, 2.7, -4.3], shot: 'library', eyebrow: 'Library wall', title: 'Every puff tells a story', text: 'Walnut shelves, books, the bubblegum bust and the door to the VIP room.', actions: [{ label: 'Book the VIP room', go: 'reserve', zone: 'VIP', table: 'V1', primary: true }] },
@@ -1782,7 +1828,7 @@ const SPOTS = [
   { id: 'screens', label: 'Screens', at: [5.8, 2.85, 4.9], shot: 'screens', eyebrow: 'Game night', title: 'Screens on the wall', text: 'Two screens on the side wall face the main hall.', actions: [{ label: 'Book by the screens', go: 'reserve', zone: 'Hall', primary: true }] },
   { id: 'street', label: 'Out front', at: [0, 4.95, 11.3], shot: 'street2', eyebrow: 'Out front', title: 'Find us', text: 'Look for the round green and gold Puff badge over the glass front.', actions: [{ label: 'Back inside', go: 'overview', primary: true }] },
 ];
-const DEFAULT_CARD = { eyebrow: 'Hookah lounge · Glyfada', title: 'Welcome to Puff', text: 'Walk the hall, the glass lounge and the VIP room, then build your own mix or book a table. Tap a glowing pin to jump to a spot.', actions: [{ label: 'Build your mix', go: 'mix', primary: true }, { label: 'Reserve a table', go: 'reserve' }] };
+const DEFAULT_CARD = { eyebrow: 'Hookah lounge · Glyfada', title: 'Welcome to Puff', text: 'Walk the terrace, the hall, the glass lounge and the VIP room, then build your own mix or book a table. Tap a glowing pin to jump to a spot.', actions: [{ label: 'Build your mix', go: 'mix', primary: true }, { label: 'Reserve a table', go: 'reserve' }] };
 const pins = []; let pinMode = null;
 function makePins() {
   SPOTS.forEach(s => {
@@ -1830,7 +1876,7 @@ function goSpot(id) {
   if (mode !== 'lounge') setMode('lounge', { noFly: true });
   fly(shot(s.shot)); setCard(s);
 }
-const TOUR = ['overview', 'hall', 'lounge', 'library', 'vip', 'bar'];
+const TOUR = ['terrace', 'overview', 'hall', 'lounge', 'library', 'vip', 'bar'];
 let touring = false, tourId = 0;
 async function playTour() {
   if (touring) { stopTour(); return; }
@@ -2166,6 +2212,7 @@ function runToTable(t, color) {
     const pts = [V3(-4.3, 1.35, -.6)];
     if (t.type === 'vip') pts.push(V3(3.5, 1.4, -3.4), V3(3.5, 1.4, -5.3));
     else if (t.type === 'sofa') pts.push(V3(-2.6, 1.4, -3.4));
+    else if (t.pos[1] > 11) pts.push(V3(-.3, 1.4, 9.4), V3(0, 1.4, 11.7));
     pts.push(V3((pts[pts.length - 1].x + end.x) / 2, 1.6, (pts[pts.length - 1].z + end.z) / 2), end);
     const curve = new THREE.CatmullRomCurve3(pts);
     const o = { t: 0 }; let last = 0; const c = new THREE.Color(color).multiplyScalar(.9);
@@ -2208,7 +2255,7 @@ function renderReserve() {
   $('#times').innerHTML = SLOTS.map((s, i) => `<button class="time" data-slot="${i}" aria-pressed="${i === res.slot}" ${slotPast(res.date, i) ? 'disabled' : ''}>${s.label}</button>`).join('');
   $('#guests').textContent = res.guests;
   $('#guestNote').textContent = res.guests > 4 ? 'Over 4? Book the VIP room, or add a note and we join tables.' : '';
-  $('#zones').innerHTML = ['All', 'Hall', 'Lounge', 'VIP', 'Bar'].map(z => `<button class="chip" data-zone="${z}" aria-pressed="${res.zone === z}">${z}</button>`).join('');
+  $('#zones').innerHTML = ['All', 'Terrace', 'Hall', 'Lounge', 'VIP', 'Bar'].map(z => `<button class="chip" data-zone="${z}" aria-pressed="${res.zone === z}">${z}</button>`).join('');
   if (res.table && tableState(TBL[res.table]) !== 'free') res.table = null;
   $('#tableGrid').innerHTML = TABLES.filter(t => res.zone === 'All' || t.zone === res.zone).map(t => {
     const st = tableState(t);
