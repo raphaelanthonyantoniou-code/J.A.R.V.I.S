@@ -650,14 +650,13 @@ const TABLES = [
   { id: 'T1', zone: 'Terrace', seats: 4, type: 'glass', pos: [4.0, 2.3], where: 'By the glass' },
   { id: 'T2', zone: 'Terrace', seats: 4, type: 'glass', pos: [4.0, 5.4], where: 'By the glass' },
   { id: 'T3', zone: 'Terrace', seats: 4, type: 'glass', pos: [4.0, 8.5], where: 'By the glass' },
-  { id: 'T4', zone: 'Terrace', seats: 5, type: 'wall', pos: [-4.6, 2.55], where: 'Screen wall' },
-  { id: 'T5', zone: 'Terrace', seats: 5, type: 'wall', pos: [-4.6, 5.9], where: 'Screen wall' },
-  { id: 'T6', zone: 'Terrace', seats: 5, type: 'wall', pos: [-4.6, 9.3], where: 'Screen wall' },
+  { id: 'T4', zone: 'Terrace', seats: 3, type: 'wall', pos: [-4.6, 2.55], where: 'Screen wall' },
+  { id: 'T5', zone: 'Terrace', seats: 3, type: 'wall', pos: [-4.6, 5.9], where: 'Screen wall' },
+  { id: 'T6', zone: 'Terrace', seats: 3, type: 'wall', pos: [-4.6, 9.3], where: 'Screen wall' },
   { id: 'T7', zone: 'Terrace', seats: 4, type: 'center', pos: [-0.3, 3.4], where: 'Under the neon' },
   { id: 'T8', zone: 'Terrace', seats: 4, type: 'center', pos: [0.4, 7.3], where: 'Under the neon' },
-  { id: 'L1', zone: 'Lounge', seats: 5, type: 'lounge', pos: [-3.3, -2.7], where: 'Velvet lounge' },
-  { id: 'L2', zone: 'Lounge', seats: 5, type: 'lounge', pos: [0.6, -2.7], where: 'Velvet lounge' },
-  { id: 'L3', zone: 'Lounge', seats: 2, type: 'duo', pos: [1.9, -5.0], where: 'By the stairs' },
+  { id: 'L1', zone: 'Lounge', seats: 3, type: 'lounge', pos: [-3.3, -2.7], where: 'Velvet lounge' },
+  { id: 'L2', zone: 'Lounge', seats: 2, type: 'pair', pos: [1.0, -2.1], where: 'Wingbacks facing the screens' },
   { id: 'B1', zone: 'Bar', seats: 2, type: 'bar', pos: [-4.1, -5.95], where: 'At the bar' },
   { id: 'B2', zone: 'Bar', seats: 2, type: 'bar', pos: [-0.9, -5.95], where: 'At the bar' },
 ];
@@ -781,6 +780,7 @@ function makeMaterials() {
   M.gold = S({ color: '#d7a640', roughness: .22, metalness: 1 });
   M.white = S({ color: '#e7e4de', roughness: .55 });
   M.velvetGrey = P({ color: '#7d7b81', roughness: .92, sheen: 1, sheenRoughness: .45, sheenColor: new THREE.Color('#d8d4de') });
+  M.velvetDark = P({ color: '#1c1f27', roughness: .9, sheen: 1, sheenRoughness: .4, sheenColor: new THREE.Color('#646b80') });
   M.pillow = P({ color: '#262a33', roughness: .9, sheen: .8, sheenColor: new THREE.Color('#58607a') });
   M.leather = S({ color: '#121214', roughness: .45 });
   M.oak = S({ map: T.pine, color: '#f0c48e', roughness: .32 });
@@ -1082,6 +1082,15 @@ function sofa(n, p, x, z, ry, mat = M.velvetGrey) {
   place(g, p, x, z, ry); shadow(p, x, z, w + .4, 1.2, ry);
   return g;
 }
+function wingback(p, x, z, ry, mat = M.velvetDark) {
+  const g = new THREE.Group();
+  mesh(rbox(.8, .42, .74, .07), mat, 0, .21, 0, g);
+  mesh(rbox(.56, .1, .54, .045), mat, 0, .46, .07, g);
+  const b = mesh(rbox(.8, .82, .17, .07), mat, 0, .78, -.3, g); b.rotation.x = -.08;
+  for (const s of [-1, 1]) { const wg = mesh(rbox(.13, .5, .42, .06), mat, s * .335, .78, -.13, g); wg.rotation.y = s * .12; mesh(rbox(.13, .2, .6, .06), mat, s * .335, .52, .05, g); }
+  place(g, p, x, z, ry); shadow(p, x, z, 1.05, 1.05, ry);
+  return g;
+}
 function stool(p, x, z) {
   const g = new THREE.Group();
   mesh(cylg(.19, .17, .07, 24), M.leather, 0, .8, 0, g);
@@ -1314,10 +1323,10 @@ function buildSets() {
     let topY = .48, top = V3(x, 0, z), seat = V3(x, 1, z - .85), dir = V3(0, .25, 1);
     switch (t.type) {
       case 'glass': tableOak(g, x, z, 0, .95, .6, .48); sofa(2, g, x, z - 1.0, 0); sofa(2, g, x, z + 1.0, Math.PI); break;
-      case 'wall': tableRed(g, x, z, Math.PI / 2); sofa(3, g, x - .95, z, Math.PI / 2); sofa(1, g, x + 1.0, z - .58, -Math.PI / 2); sofa(1, g, x + 1.0, z + .58, -Math.PI / 2); topY = .56; seat.set(x - .9, 1, z); dir.set(1, .25, 0); break;
+      case 'wall': tableRed(g, x, z, Math.PI / 2); sofa(3, g, x - .95, z, Math.PI / 2); topY = .56; seat.set(x - .9, 1, z); dir.set(1, .25, 0); break;
       case 'center': tableOak(g, x, z, 0, .8, .8, .48); sofa(2, g, x, z - 1.0, 0); sofa(1, g, x - .62, z + .98, Math.PI); sofa(1, g, x + .62, z + .98, Math.PI); break;
-      case 'lounge': tableBlack(g, x, z, 0, 1.0, .6, .45); sofa(3, g, x, z - 1.08, 0); sofa(1, g, x - .62, z + 1.0, Math.PI); sofa(1, g, x + .62, z + 1.0, Math.PI); topY = .45; break;
-      case 'duo': tableBlack(g, x, z, 0, .6, .6, .45); sofa(1, g, x - .85, z, Math.PI / 2); sofa(1, g, x + .85, z, -Math.PI / 2); topY = .45; seat.set(x - .75, 1, z); dir.set(1, .25, 0); break;
+      case 'lounge': tableBlack(g, x, z, 0, 1.0, .6, .45); sofa(3, g, x, z - 1.08, 0); topY = .45; break;
+      case 'pair': tableBlack(g, x, z + .15, 0, .9, .5, .45); wingback(g, x - .5, z - .85, 0); wingback(g, x + .5, z - .85, 0); topY = .45; top.z = z + .15; break;
       case 'bar': stool(g, x - .4, z); stool(g, x + .4, z); topY = 1.08; top.z = -6.7; seat.set(x, 1.4, z); dir.set(0, .3, -1); break;
     }
     top.y = topY; t.top = top; t.seat = seat; t.dir = dir.normalize();
@@ -1329,7 +1338,7 @@ function buildSets() {
     // hit volume for taps
     const hit = mesh(cylg(1.15, 1.15, 1.4, 12), M.hit, x, .7, t.type === 'bar' ? z - .4 : z, g); hit.userData.table = t.id; hits.push(hit);
     // reservation marker
-    const r = t.type === 'wall' ? 1.45 : t.type === 'bar' ? .85 : t.type === 'duo' ? 1.15 : 1.35;
+    const r = t.type === 'wall' ? 1.45 : t.type === 'bar' ? .85 : t.type === 'pair' ? 1.1 : 1.35;
     const mk = new THREE.Group(); mk.position.set(x, .03, t.type === 'bar' ? z : z); mk.visible = false; world.add(mk);
     const ring = mesh(new THREE.RingGeometry(r - .045, r, 64), markerMats.base.clone(), 0, 0, 0, mk); ring.rotation.x = -Math.PI / 2;
     const fill = mesh(new THREE.CircleGeometry(r - .045, 64), new THREE.MeshBasicMaterial({ color: avail, transparent: true, opacity: .06, depthWrite: false }), 0, -.002, 0, mk); fill.rotation.x = -Math.PI / 2;
@@ -2050,7 +2059,7 @@ function renderReserve() {
   $('#monthLabel').textContent = fromKey(res.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
   $('#times').innerHTML = SLOTS.map((s, i) => `<button class="time" data-slot="${i}" aria-pressed="${i === res.slot}" ${slotPast(res.date, i) ? 'disabled' : ''}>${s.label}</button>`).join('');
   $('#guests').textContent = res.guests;
-  $('#guestNote').textContent = res.guests > 5 ? 'Groups over 5: we join tables, add a note below.' : '';
+  $('#guestNote').textContent = res.guests > 4 ? 'Groups over 4: we join tables, add a note below.' : '';
   $('#zones').innerHTML = ['All', 'Terrace', 'Lounge', 'Bar'].map(z => `<button class="chip" data-zone="${z}" aria-pressed="${res.zone === z}">${z}</button>`).join('');
   if (res.table && tableState(TBL[res.table]) !== 'free') res.table = null;
   $('#tableGrid').innerHTML = TABLES.filter(t => res.zone === 'All' || t.zone === res.zone).map(t => {
