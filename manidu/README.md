@@ -21,7 +21,7 @@ cd manidu && python3 -m http.server 8000
 # then open http://localhost:8000
 ```
 
-Three.js 0.160 and GSAP 3.12 load from public CDNs, so the page needs an internet connection.
+Three.js 0.160 and GSAP 3.12 load from the jsDelivr CDN, so the page needs an internet connection.
 
 ## Before going live
 

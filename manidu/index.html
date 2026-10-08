@@ -7,7 +7,28 @@
 <meta name="description" content="Walk through the Manidu shisha lounge in 3D, build your own shisha mix, order to your table and reserve a seat.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Jost:wght@300;400;500;600&display=swap">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" id="gf" media="print" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Jost:wght@300;400;500;600&display=swap">
+<script>document.getElementById("gf").media = "all";</script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/geometries/RoundedBoxGeometry.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/EffectComposer.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/RenderPass.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/UnrealBloomPass.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/OutputPass.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/Pass.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/ShaderPass.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/MaskPass.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/shaders/CopyShader.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/shaders/LuminosityHighPassShader.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/shaders/OutputShader.js">
 <style>
 :root{
   /* Layout: full-bleed 3D lounge; UI docks as smoked-glass panels: a right rail on desktop, a bottom sheet above a tab bar on phones */
@@ -506,13 +527,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script type="importmap">
-{ "imports": {
-  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-} }
-</script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -794,6 +809,7 @@ function makeMaterials() {
   M.headlight = new THREE.MeshBasicMaterial({ color: new THREE.Color('#fff4dc').multiplyScalar(6) });
   M.taillight = new THREE.MeshBasicMaterial({ color: new THREE.Color('#ff2020').multiplyScalar(4) });
   M.lampHead = new THREE.MeshBasicMaterial({ color: new THREE.Color('#ffbf73').multiplyScalar(4) });
+  M.candleGlow = new THREE.MeshBasicMaterial({ map: T.glow, color: new THREE.Color('#ff9a48').multiplyScalar(.55), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
   M.shadow = new THREE.MeshBasicMaterial({ map: T.shadow, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
   M.hit = new THREE.MeshBasicMaterial({ visible: false });
 }
@@ -865,8 +881,11 @@ function pavedBox(w, d, x, z) {
 }
 function block(x0, x1, z0, z1, h, y0 = -.25) {
   const w = x1 - x0, d = z1 - z0;
-  const mf = new THREE.MeshBasicMaterial({ map: windowTex(Math.max(2, Math.round(w / 3.4)), Math.max(2, Math.round(h / 3.1))), color: '#cfc8be' });
-  const ms = new THREE.MeshBasicMaterial({ map: windowTex(Math.max(2, Math.round(d / 3.4)), Math.max(2, Math.round(h / 3.1))), color: '#cfc8be' });
+  // two shared 8x8 window sheets, tiled per face, so the GPU uploads them once
+  T.win = T.win || [windowTex(8, 8), windowTex(8, 8)];
+  const sheet = (len) => { const t = T.win[Math.floor(rnd() * 2)].clone(); t.repeat.set(Math.max(2, Math.round(len / 3.4)) / 8, Math.max(2, Math.round(h / 3.1)) / 8); t.offset.set(Math.floor(rnd() * 8) / 8, 0); return t; };
+  const mf = new THREE.MeshBasicMaterial({ map: sheet(w), color: '#cfc8be' });
+  const ms = new THREE.MeshBasicMaterial({ map: sheet(d), color: '#cfc8be' });
   const mt = new THREE.MeshBasicMaterial({ color: '#0b0b0e' });
   const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), [ms, ms, mt, mt, mf, mf]);
   m.position.set((x0 + x1) / 2, y0 + h / 2, (z0 + z1) / 2); scene.add(m); return m;
@@ -1046,13 +1065,8 @@ function buildBar() {
   box(.4, .06, .3, M.blackMetal, .2, .98, -9.23);
   const coalMat = new THREE.MeshBasicMaterial({ color: '#ff5a1a' });
   world.add(instanced(bgeo(1, 1, 1), coalMat, coals));
-  const coalLight = new THREE.PointLight('#ff6a2a', 1.6, 2.2, 2); coalLight.position.set(.2, 1.25, -9.1); world.add(coalLight);
-  anim.push((dt, t) => { const k = 2.2 + Math.sin(t * 2.1) * .6 + Math.sin(t * 5.3) * .25; coalMat.color.setRGB(1 * k, .32 * k, .08 * k); coalLight.intensity = .9 + k * .35; });
-  // pendant spots over the counter
-  for (const x of [-4.2, -.9]) {
-    const s = new THREE.SpotLight('#ffd6a0', 13, 6, .5, .85, 2); s.position.set(x, 3.38, -6.7); s.target.position.set(x, 0, -6.8);
-    world.add(s, s.target); regLight('bar', s);
-  }
+  anim.push((dt, t) => { const k = 2.2 + Math.sin(t * 2.1) * .6 + Math.sin(t * 5.3) * .25; coalMat.color.setRGB(1 * k, .32 * k, .08 * k); });
+  const over = regLight('bar', new THREE.PointLight('#ffd6a0', 6, 6, 1.8)); over.position.set(-2.5, 3.0, -5.9); world.add(over);
 }
 
 /* ---------- furniture ---------- */
@@ -1106,15 +1120,14 @@ function tableBlack(p, x, z, ry, L, Wd, h) {
   mesh(cylg(.22, .24, .02, 24), M.blackMetal, 0, .01, 0, g);
   place(g, p, x, z, ry); shadow(p, x, z, L + .3, Wd + .3, ry, .6);
 }
-function candle(p, pos, withLight) {
+function candle(p, pos) {
   const g = new THREE.Group();
   mesh(cylg(.035, .035, .085, 16, true), M.jar, 0, .043, 0, g);
   mesh(cylg(.03, .03, .045, 16), M.wax, 0, .023, 0, g);
   const f = mesh(cache('flame', () => new THREE.SphereGeometry(.011, 10, 8)), M.flame, 0, .066, 0, g); f.scale.set(1, 1.9, 1);
   g.position.copy(pos); p.add(g);
-  let light = null;
-  if (withLight) { light = new THREE.PointLight('#ff9a48', 1.3, 2.6, 2); light.position.set(0, .18, 0); g.add(light); }
-  candles.push({ f, light, ph: rnd() * 10 });
+  const pool = mesh(plane(.9, .9), M.candleGlow, 0, .003, 0, g); pool.rotation.x = -Math.PI / 2;
+  candles.push({ f, light: null, ph: rnd() * 10 });
 }
 function tumbler(p, pos) {
   const g = new THREE.Group();
@@ -1305,7 +1318,6 @@ function buildSets() {
   const avail = new THREE.Color('#ffd78f').multiplyScalar(1.6);
   markerMats.base = new THREE.MeshBasicMaterial({ color: avail, transparent: true, opacity: .9, depthWrite: false, side: THREE.DoubleSide });
   const lit = { T1: 'watermelon', T4: 'grape', T5: 'mango', T7: 'mint', L1: 'blueberry', B1: 'peach' };
-  const candleLights = new Set(['T4', 'T7', 'L1', 'T2']);
   TABLES.forEach(t => {
     const g = new THREE.Group(); world.add(g);
     const [x, z] = t.pos;
@@ -1321,7 +1333,7 @@ function buildSets() {
     top.y = topY; t.top = top; t.seat = seat; t.dir = dir.normalize();
     // props
     const ofs = t.type === 'wall' ? V3(.05, 0, -.45) : t.type === 'bar' ? V3(.35, 0, .05) : V3(-.18, 0, .06);
-    candle(g, top.clone().add(ofs), candleLights.has(t.id));
+    candle(g, top.clone().add(ofs));
     if (t.type !== 'bar') { tumbler(g, top.clone().add(V3(.16, 0, .14))); tumbler(g, top.clone().add(V3(.27, 0, -.08))); }
     if (lit[t.id]) addTableHookah(t, FL[lit[t.id]].c, false);
     // hit volume for taps
@@ -1427,13 +1439,16 @@ function signCanvas(glow) {
   else { g.fillStyle = '#fff'; pass(); }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
-async function buildSign() {
-  try { await Promise.race([document.fonts.load('500 120px Jost'), wait(2500)]); } catch { /* fall back to Futura/system */ }
+function buildSign() {
   const letters = neonMat('sign', '#ffffff', 2.3, { map: signCanvas(false), transparent: true, depthWrite: false });
   const halo = neonMat('sign', '#fff4e4', .9, { map: signCanvas(true), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
   mesh(plane(5.4, 1.35), halo, 0, 3.98, 11.258, roof).renderOrder = 4;
   mesh(plane(5.4, 1.35), letters, 0, 3.98, 11.27, roof).renderOrder = 5;
-  const sl = regLight('sign', new THREE.PointLight('#fff2e0', 5, 7, 1.8)); sl.position.set(0, 3.3, 12.2); roof.add(sl);
+  document.fonts.load('500 120px Jost').then(f => {
+    if (!f.length) return;
+    for (const [m, glow] of [[letters, false], [halo, true]]) { const old = m.map; m.map = signCanvas(glow); old.dispose(); }
+  }).catch(() => { /* keep the fallback face */ });
+  const pool = mesh(plane(7, 3.2), neonMat('sign', '#fff2e0', .22, { map: T.glow, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }), 0, -.085, 12.3, roof); pool.rotation.x = -Math.PI / 2;
 }
 
 /* ---------- the hero hookah on the bar counter (Mix Lab) ---------- */
@@ -1442,8 +1457,6 @@ function buildHero() {
   hero = makeHookah({ vase: '#f4a3b6', stem: 'red' });
   hero.group.position.copy(HERO_POS); hero.group.rotation.y = -2.0; world.add(hero.group);
   hero.emitter = smoke.addEmitter({ anchor: hero.smokeAnchor, color: SMOKE_GREY.clone(), rate: 7, on: true, density: 1 });
-  hero.light = new THREE.PointLight('#ff6a2a', .5, 1.4, 2); hero.light.position.set(0, .86, 0); hero.group.add(hero.light);
-  anim.push((dt, t) => { hero.light.intensity = hero.glowLevel * (.45 + Math.sin(t * 1.7) * .12) * (1 - hero.lifted); });
   const hit = mesh(cylg(.3, .3, 1, 10), M.hit, HERO_POS.x, HERO_POS.y + .5, HERO_POS.z); hit.userData.hero = true; hits.push(hit);
 }
 function heroLift(on) {
@@ -1482,7 +1495,7 @@ function makeTV() {
 async function init3D(progress) {
   try { renderer = new THREE.WebGLRenderer({ canvas: $('#scene'), antialias: false, powerPreference: 'high-performance' }); }
   catch (e) { HAS3D = false; return; }
-  const dpr = Math.min(devicePixelRatio || 1, isPhone() ? 1.5 : 1.75);
+  const dpr = Math.min(devicePixelRatio || 1, isPhone() ? 1.3 : 1.6);
   renderer.setPixelRatio(dpr); renderer.setSize(innerWidth, innerHeight, false);
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15;
   scene = new THREE.Scene(); scene.background = new THREE.Color('#05060a'); scene.fog = new THREE.Fog('#06070c', 30, 110);
@@ -1501,7 +1514,7 @@ async function init3D(progress) {
   buildSets(); buildHero();
   progress(.75, 'Hanging the greenery'); await nextFrame();
   buildNeon(); buildGreenery();
-  progress(.88, 'Wiring the sign'); await buildSign();
+  progress(.85, 'Wiring the sign'); buildSign();
   hemi = new THREE.HemisphereLight('#2b3650', '#26170c', .55); scene.add(hemi);
   const moon = new THREE.DirectionalLight('#7088b8', .35); moon.position.set(12, 20, 30); scene.add(moon);
 
@@ -1521,7 +1534,8 @@ async function init3D(progress) {
   composer.addPass(new OutputPass());
   // compile everything once so the intro does not stutter
   ['sign', 'terrace', 'bar', 'interior'].forEach(g => setPower(g, 1));
-  renderer.compile(scene, camera);
+  progress(.92, 'Warming up the lights');
+  if (renderer.compileAsync) await renderer.compileAsync(scene, camera); else renderer.compile(scene, camera);
   composer.render();
   ['sign', 'terrace', 'bar', 'interior'].forEach(g => setPower(g, 0));
   progress(1, 'Ready');
@@ -1998,7 +2012,7 @@ async function runTracker(order) {
 function runToTable(t, color) {
   return new Promise(res => {
     const orb = new THREE.Mesh(new THREE.SphereGeometry(.045, 14, 10), new THREE.MeshBasicMaterial({ color: new THREE.Color(color).multiplyScalar(4) }));
-    const light = new THREE.PointLight(color, 2.2, 3, 2); orb.add(light); world.add(orb);
+    world.add(orb);
     const end = t.top.clone().add(V3(0, .45, 0));
     const pts = [V3(.1, 1.35, -6.1)];
     if (t.pos[1] > 0) pts.push(V3(-.3, 1.4, -2.6), V3(-.2, 1.45, .6));
@@ -2134,7 +2148,7 @@ function typeLines(lines) {
   el.innerHTML = lines.map(l => `<div>${[...l].map(ch => `<span>${ch === ' ' ? '&nbsp;' : esc(ch)}</span>`).join('')}</div>`).join('');
   const spans = el.querySelectorAll('span');
   gsap.fromTo(spans, { yPercent: 115, opacity: 0 }, { yPercent: 0, opacity: 1, duration: .8, stagger: .028, ease: 'power3.out' });
-  gsap.to(spans, { yPercent: -115, opacity: 0, duration: .5, stagger: .012, ease: 'power2.in', delay: 3.3, onComplete: () => { el.innerHTML = ''; } });
+  gsap.to(spans, { yPercent: -115, opacity: 0, duration: .5, stagger: .012, ease: 'power2.in', delay: 2.3, onComplete: () => { el.innerHTML = ''; } });
 }
 function playIntro() {
   const L = $('#loader');
@@ -2146,14 +2160,14 @@ function playIntro() {
   if (REDUCED) { finishIntro(); return; }
   $('#skip').hidden = false;
   introTl = gsap.timeline({ onComplete: finishIntro });
-  introTl.add(powerOn('sign', 0, 1.4), .5)
-    .add(() => typeLines(['Shisha', 'Cocktails', 'Terrace nights']), 1.1)
-    .add(() => { fly(shot('streetClose'), { dur: 2.5, lift: .15 }); }, 1.3)
-    .add(powerOn('terrace', 0, 1.1), 2.0)
-    .add(powerOn('bar', 0, .9), 2.6)
-    .add(powerOn('interior', 0, .9), 2.9)
-    .add(() => { fly(shot('overview'), { dur: 3.1, lift: .25 }); }, 3.8)
-    .to({}, { duration: .1 }, 6.9);
+  introTl.add(powerOn('sign', 0, 1.0), .2)
+    .add(() => typeLines(['Shisha', 'Cocktails', 'Terrace nights']), .5)
+    .add(() => { fly(shot('streetClose'), { dur: 1.9, lift: .15 }); }, .7)
+    .add(powerOn('terrace', 0, .9), 1.2)
+    .add(powerOn('bar', 0, .7), 1.6)
+    .add(powerOn('interior', 0, .7), 1.8)
+    .add(() => { fly(shot('overview'), { dur: 2.4, lift: .25 }); }, 2.6)
+    .to({}, { duration: .1 }, 5.0);
 }
 function skipIntro() {
   if (mode !== 'intro') return;
