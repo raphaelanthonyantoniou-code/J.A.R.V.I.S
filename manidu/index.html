@@ -781,7 +781,6 @@ function makeMaterials() {
   M.gold = S({ color: '#d7a640', roughness: .22, metalness: 1 });
   M.white = S({ color: '#e7e4de', roughness: .55 });
   M.velvetGrey = P({ color: '#7d7b81', roughness: .92, sheen: 1, sheenRoughness: .45, sheenColor: new THREE.Color('#d8d4de') });
-  M.velvetDark = P({ color: '#1c1f27', roughness: .9, sheen: 1, sheenRoughness: .4, sheenColor: new THREE.Color('#646b80') });
   M.pillow = P({ color: '#262a33', roughness: .9, sheen: .8, sheenColor: new THREE.Color('#58607a') });
   M.leather = S({ color: '#121214', roughness: .45 });
   M.oak = S({ map: T.pine, color: '#f0c48e', roughness: .32 });
@@ -1083,15 +1082,6 @@ function sofa(n, p, x, z, ry, mat = M.velvetGrey) {
   place(g, p, x, z, ry); shadow(p, x, z, w + .4, 1.2, ry);
   return g;
 }
-function wingback(p, x, z, ry, mat = M.velvetDark) {
-  const g = new THREE.Group();
-  mesh(rbox(.8, .42, .74, .07), mat, 0, .21, 0, g);
-  mesh(rbox(.56, .1, .54, .045), mat, 0, .46, .07, g);
-  const b = mesh(rbox(.8, .82, .17, .07), mat, 0, .78, -.3, g); b.rotation.x = -.08;
-  for (const s of [-1, 1]) { const wg = mesh(rbox(.13, .5, .42, .06), mat, s * .335, .78, -.13, g); wg.rotation.y = s * .12; mesh(rbox(.13, .2, .6, .06), mat, s * .335, .52, .05, g); }
-  place(g, p, x, z, ry); shadow(p, x, z, 1.05, 1.05, ry);
-  return g;
-}
 function stool(p, x, z) {
   const g = new THREE.Group();
   mesh(cylg(.19, .17, .07, 24), M.leather, 0, .8, 0, g);
@@ -1324,10 +1314,10 @@ function buildSets() {
     let topY = .48, top = V3(x, 0, z), seat = V3(x, 1, z - .85), dir = V3(0, .25, 1);
     switch (t.type) {
       case 'glass': tableOak(g, x, z, 0, .95, .6, .48); sofa(2, g, x, z - 1.0, 0); sofa(2, g, x, z + 1.0, Math.PI); break;
-      case 'wall': tableRed(g, x, z, Math.PI / 2); sofa(3, g, x - .95, z, Math.PI / 2); wingback(g, x + 1.0, z - .48, -Math.PI / 2); wingback(g, x + 1.0, z + .48, -Math.PI / 2); topY = .56; seat.set(x - .9, 1, z); dir.set(1, .25, 0); break;
+      case 'wall': tableRed(g, x, z, Math.PI / 2); sofa(3, g, x - .95, z, Math.PI / 2); sofa(1, g, x + 1.0, z - .58, -Math.PI / 2); sofa(1, g, x + 1.0, z + .58, -Math.PI / 2); topY = .56; seat.set(x - .9, 1, z); dir.set(1, .25, 0); break;
       case 'center': tableOak(g, x, z, 0, .8, .8, .48); sofa(2, g, x, z - 1.0, 0); sofa(1, g, x - .62, z + .98, Math.PI); sofa(1, g, x + .62, z + .98, Math.PI); break;
-      case 'lounge': tableBlack(g, x, z, 0, 1.0, .6, .45); sofa(3, g, x, z - 1.08, 0); wingback(g, x - .5, z + 1.0, Math.PI); wingback(g, x + .5, z + 1.0, Math.PI); topY = .45; break;
-      case 'duo': tableBlack(g, x, z, 0, .6, .6, .45); wingback(g, x - .8, z, Math.PI / 2); wingback(g, x + .8, z, -Math.PI / 2); topY = .45; seat.set(x - .75, 1, z); dir.set(1, .25, 0); break;
+      case 'lounge': tableBlack(g, x, z, 0, 1.0, .6, .45); sofa(3, g, x, z - 1.08, 0); sofa(1, g, x - .62, z + 1.0, Math.PI); sofa(1, g, x + .62, z + 1.0, Math.PI); topY = .45; break;
+      case 'duo': tableBlack(g, x, z, 0, .6, .6, .45); sofa(1, g, x - .85, z, Math.PI / 2); sofa(1, g, x + .85, z, -Math.PI / 2); topY = .45; seat.set(x - .75, 1, z); dir.set(1, .25, 0); break;
       case 'bar': stool(g, x - .4, z); stool(g, x + .4, z); topY = 1.08; top.z = -6.7; seat.set(x, 1.4, z); dir.set(0, .3, -1); break;
     }
     top.y = topY; t.top = top; t.seat = seat; t.dir = dir.normalize();
@@ -1621,9 +1611,12 @@ function applyViewShift() {
 let roofUp = false;
 function setRoof(on) {
   if (!HAS3D || roofUp === !on) return;
-  roofUp = !on; gsap.killTweensOf(roof.position); gsap.killTweensOf(hemi);
+  roofUp = !on; gsap.killTweensOf(roof.position); gsap.killTweensOf(hemi); gsap.killTweensOf(hemi.color);
+  // night-blue sky light inside; a neutral warm light over the open floor plan so the grey seats read as grey
+  const sky = new THREE.Color(on ? '#2b3650' : '#9a8f84');
+  gsap.to(hemi.color, { r: sky.r, g: sky.g, b: sky.b, duration: 1.2 });
   if (on) { roof.visible = true; gsap.to(roof.position, { y: 0, duration: REDUCED ? 0 : 1.3, ease: 'power3.out' }); gsap.to(hemi, { intensity: .55, duration: 1 }); }
-  else { gsap.to(roof.position, { y: 16, duration: REDUCED ? 0 : 1.2, ease: 'power3.in', onComplete: () => { roof.visible = false; } }); gsap.to(hemi, { intensity: 2.2, duration: 1.2 }); }
+  else { gsap.to(roof.position, { y: 16, duration: REDUCED ? 0 : 1.2, ease: 'power3.in', onComplete: () => { roof.visible = false; } }); gsap.to(hemi, { intensity: 1.6, duration: 1.2 }); }
 }
 
 /* ============================== PINS ============================== */
